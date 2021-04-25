@@ -1,3 +1,3 @@
-module github.com/yury-kliachko-epam/lm-aws-auth-helper
+module lmAwsAuthHelper
 
 go 1.16

@@ -3,35 +3,49 @@ package core
 import (
 	"log"
 	"os"
+	"os/exec"
+	"io"
+	"fmt"
 )
 
-var awsToolPathEnvVar = "AWS_AUTH_TOOL_PATH"
-var aAccountPassword = "AACCOUNT_PASSWORD"
+type LmAWSAuthWrapper struct {
+	environment Enviroment
+	awsToolPath string
+	aAccountPasswordEnvVar string
+}
 
-type LmAWSAuthWrapper struct{}
-
-func (wrapper LmAWSAuthWrapper) Authenticate() {
-	pathToAwsTool := os.Getenv(awsToolPathEnvVar)
-	if pathToAwsTool == "" {
-		log.Printf("No path for AWS tool found, you must set it as %s env var", awsToolPathEnvVar)
-		return
-	}
-	log.Printf("Path to AWS tool is %s", pathToAwsTool)
-	password := os.Getenv(aAccountPassword)
+func (w LmAWSAuthWrapper) Authenticate() {
+	log.Printf("Authenticate to %s environment", w.environment)
+	password := os.Getenv(w.aAccountPasswordEnvVar)
 	if password == "" {
-		log.Printf("No AWS password found, you must set it as %s env var", aAccountPassword)
+		log.Printf("No AWS password found, you must set it as %s env var", w.aAccountPasswordEnvVar)
 		return
 	}
 	log.Printf("AWS password found")
 	authenticate()
 	parseCredentials()
-	setEnvVars()
+	//setEnvVars()
 	log.Printf("Trying to authenticate with password %s", password)
-
 }
 
 func authenticate() {
-	log.Println("auth ...")
+	cmd := exec.Command("echo")
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	go func() {
+		defer stdin.Close()
+		io.WriteString(stdin, "values written to stdin are passed to cmd's standard input")
+	}()
+
+	out, err := cmd.CombinedOutput()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("%s\n", out)
 }
 
 func parseCredentials() {
